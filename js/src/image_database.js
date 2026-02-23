@@ -28,6 +28,7 @@ class ImageDatabase {
 				"format VARCHAR(8)," +
 				"size_bytes INTEGER," +
 				"thumbnail VARCHAR(255)," +
+				"caption VARCHAR(128)," +
 				"error_msg VARCHAR(255)" +
 			");"
 		);
@@ -42,10 +43,14 @@ class ImageDatabase {
 		);
 
 		this.#queries.update_stmt = this.#db.prepare(
-			"UPDATE OR IGNORE processed_images SET " +
+			"UPDATE processed_images SET " +
 				"(image_id, status, processing_time, width, height, format, size_bytes, thumbnail, error_msg) = " +
 				"(?, ?, ?, ?, ?, ?, ?, ?, ?) " +
 			"WHERE row_id = ?;"
+		);
+
+		this.#queries.set_caption_stmt = this.#db.prepare(
+			"UPDATE processed_images SET caption = ? WHERE image_id = ?;"
 		);
 
 		this.#queries.get_stmt = this.#db.prepare(
@@ -62,10 +67,6 @@ class ImageDatabase {
 				"COALESCE(SUM(IIF(status == 'failed', 1, 0)), 0) AS failed," +
 				"COALESCE(SUM(processing_time), 0) / 1000 AS total_processing_time_seconds " +
 			"FROM processed_images;"
-		);
-
-		this.#queries.row_exists_stmt = this.#db.prepare(
-			"SELECT EXISTS(SELECT 1 FROM processed_images WHERE image_id = ?) AS found;"
 		);
 	}
 
@@ -89,6 +90,10 @@ class ImageDatabase {
 		);
 	}
 
+	setImageCaption(caption, imageId) {
+		this.#queries.set_caption_stmt.run(caption, imageId);
+	}
+
 	getImageData(imageId) {
 		return this.#queries.get_stmt.get(imageId);
 	}
@@ -99,10 +104,6 @@ class ImageDatabase {
 
 	getProcessingStats() {
 		return this.#queries.stats_stmt.get(); 
-	}
-
-	checkIsRowExist(imageId) {
-		return this.#queries.row_exists_stmt.get(imageId);
 	}
 };
 

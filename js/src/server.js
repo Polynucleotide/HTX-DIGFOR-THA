@@ -51,6 +51,8 @@ function constructJsonResponse(imageData) {
 			small: `${DOMAIN}/api/images/${imageData.thumbnail}/thumbnails/small`,
 			medium: `${DOMAIN}/api/images/${imageData.thumbnail}/thumbnails/medium`
 		}
+
+		response.data.caption = imageData.caption;
 	}
 
 	return response;
@@ -61,7 +63,30 @@ app.get("/", (req, res) => {
 });
 
 app.post("/api/images", upload.single("image"), (req, res) => {
+	// Process image metadata
 	const imageId = imageProcessor.processImage(req.file, imageDatabase);
+
+	// Generate caption for image
+	fetch('http://python-server:3000/api/image/upload', {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/octet-stream",
+		},
+		body: req.file.buffer,
+	})
+	.then(response => {
+		if (!response.ok) {
+			throw new Error("Network response was not ok");
+		}
+		return response.json();
+	})
+	.then(data => {
+		imageDatabase.setImageCaption(data.caption, imageId);
+	})
+	.catch(error => {
+		console.error("There was a problem with the fetch operation:", error);
+	});
+
 	res.redirect(`/api/images/${imageId}`);
 });
 
@@ -96,10 +121,10 @@ app.get("/api/stats", (_, res) => {
 
 app.get("/api/images/:id/thumbnails/:size", (req, res) => {
 	const imageId = req.params.id;
-	const result = imageDatabase.checkIsRowExist(imageId);
-	if (result.found) {
+	const imageData = imageDatabase.getImageData(imageId);
+	if (imageData !== undefined) {
 		const filename = `${DOMAIN}/thumbnails/${imageId}_${req.params.size}.webp`
-		res.send(`<img src="${filename}"/>`);
+		res.send(`<img src="${filename}" style="display:block"/><p>${imageData.caption}</p>`);
 	}
 	else {
 		res.status(404).send(`Thumbnail with ID "${imageId}" not found.`);
