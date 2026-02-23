@@ -1,0 +1,5 @@
+services:
+  node-server:
+    build: ./js
+    ports:
+      - 8000:8000
