@@ -47,8 +47,8 @@ Uploading images is done with `curl`
 ```bash
 curl -X POST http://localhost:8000/api/images -F "image=@C:/path/to/image.png"
 ```
-If you're lazy, I've provided a script, `script.sh`, that sends a request for every file in the `images/` folder.  
-If you want, you can add some of your own images.
+There is also a script provided, `script.sh`, that sends a request for every file in the `images/` folder.  
+Add some of your own images and simply call `script.sh`.
 
 ## 5. API Usage
 ```
