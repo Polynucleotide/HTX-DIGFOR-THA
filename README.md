@@ -16,7 +16,8 @@ cd <project-folder>
 ```
 
 **2. Configure Environment (Optional)**  
-Create a .env file in the python/ directory and add your HuggingFace access token.
+Create a .env file in the python/ directory and add your HuggingFace access token.  
+You don't need the token, but the .env file must exist.
 ```bash
 # .env
 HF_TOKEN=<hugging-face-access-token>
