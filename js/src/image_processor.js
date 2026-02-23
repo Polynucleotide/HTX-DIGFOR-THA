@@ -1,14 +1,19 @@
+const { LogLevel } = require("./logger");
+
 class ImageProcessor {
+	static #supportedExtensions = ["png", "jpeg"];
 	#sharp;
 	#thumbnailDir;
-	static #supportedExtensions = ["png", "jpeg"];
-	constructor(destDir) {
+	#logger;
+
+	constructor(destDir, logger) {
 		this.#sharp = require("sharp");
 		this.#thumbnailDir = destDir;
 		const fs = require("fs");
 		if (!fs.existsSync(destDir)) {
 			fs.mkdirSync(destDir);
 		}
+		this.#logger = logger;
 	}
 
 	processImage(file, database) {
@@ -55,10 +60,12 @@ class ImageProcessor {
 				processedImage.processingTime = Number(end - start) / 1_000_000; // Convert nanoseconds to milliseconds
 				processedImage.sizeBytes = file.size;
 				processedImage.status = "success";
+				this.#logger.log(LogLevel.INFO, `Successully processed image (${imageId})`);
 			})
 			.catch(_ => {
 				processedImage.errorMsg = "invalid file format";
 				processedImage.status = "failed";
+				this.#logger.log(LogLevel.WARN, `Failed to process image (${imageId})`);
 			})
 			.finally(() => {
 				database.updateImageData(processedImage);

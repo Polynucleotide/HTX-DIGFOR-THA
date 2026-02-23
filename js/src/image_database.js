@@ -3,15 +3,17 @@ const Database = require('better-sqlite3');
 class ImageDatabase {
 	#db;
 	#queries = {};
+	#logger;
 
 	// Create Database file and tables.
-	constructor(destDir) {
+	constructor(destDir, logger) {
 		const fs = require("fs");
 		if (!fs.existsSync(destDir)) {
 			fs.mkdirSync(destDir);
 		}
 		this.#db = new Database(`${destDir}/database.db`);
 		this.#db.pragma("journal_mode = WAL");
+		this.#logger = logger;
     }
 
 	init() {
@@ -33,6 +35,12 @@ class ImageDatabase {
 			");"
 		);
 		const info = stmt.run();
+		if (info.changes > 0) {
+			this.#logger.log(LogLevel.INFO, "Successfully created table \"processed_images\"");
+		}
+		else {
+			this.#logger.log(LogLevel.WARN, "Failed to create table \"processed_images\"");
+		}
 
 		// Store prepared statements to use later
 		this.#queries.insert_stmt = this.#db.prepare(
@@ -72,6 +80,7 @@ class ImageDatabase {
 
 	insertImageRow(imageOriginalName) {
 		const info = this.#queries.insert_stmt.run(imageOriginalName);
+		this.#logger.log(LogLevel.INFO, `Row inserted with image name "${imageOriginalName}"`);
 		return info.lastInsertRowid;
 	}
 
@@ -88,6 +97,13 @@ class ImageDatabase {
 			processedImageData.errorMsg,
 			processedImageData.rowId
 		);
+
+		if (info.changes > 0) {
+			this.#logger.log(LogLevel.INFO, `Successfully processed image "${processedImageData.imageId}" metadata`);
+		}
+		else {
+			this.#logger.log(LogLevel.WARN, `Failed to process image "${processedImageData.imageId}" metadata`);
+		}
 	}
 
 	setImageCaption(caption, imageId) {

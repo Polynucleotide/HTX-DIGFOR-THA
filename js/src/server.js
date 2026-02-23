@@ -13,11 +13,15 @@ const multer = require("multer");
 const storage = multer.memoryStorage(); 
 const upload = multer({ storage: storage });
 
+// Logger
+const { LogLevel, Logger } = require("./logger");
+const logger = new Logger(rootDir);
+
 const ImageProcessor = require("./image_processor");
-const imageProcessor = new ImageProcessor(`${rootDir}/thumbnails`);
+const imageProcessor = new ImageProcessor(`${rootDir}/thumbnails`, logger);
 
 const ImageDatabase = require("./image_database");
-const imageDatabase = new ImageDatabase(`${rootDir}/database`);
+const imageDatabase = new ImageDatabase(`${rootDir}/database`, logger);
 imageDatabase.init();
 
 const DOMAIN = `http://localhost:${port}`;
@@ -82,9 +86,11 @@ app.post("/api/images", upload.single("image"), (req, res) => {
 	})
 	.then(data => {
 		imageDatabase.setImageCaption(data.caption, imageId);
+		logger.log(LogLevel.INFO, `Successfully generated caption for image ${imageId}`);
 	})
 	.catch(error => {
 		console.error("There was a problem with the fetch operation:", error);
+		logger.log(LogLevel.WARN, `Failed to generate caption for image ${imageId}`);
 	});
 
 	res.redirect(`/api/images/${imageId}`);
@@ -100,6 +106,7 @@ app.get("/api/images/:id", (req, res) => {
 	const imageId = req.params.id;
 	const imageData = imageDatabase.getImageData(imageId);
 	if (imageData === undefined) {
+		logger.log(LogLevel.WARN, `Failed to find image ${imageId} in the database`);
 		return res.status(404).send(`Image Data with ID "${imageId}" not found.`);
 	}
 	const response = constructJsonResponse(imageData);
@@ -127,6 +134,7 @@ app.get("/api/images/:id/thumbnails/:size", (req, res) => {
 		res.send(`<img src="${filename}" style="display:block"/><p>${imageData.caption}</p>`);
 	}
 	else {
+		logger.log(LogLevel.WARN, `Failed to find image ${imageId} in the database`);
 		res.status(404).send(`Thumbnail with ID "${imageId}" not found.`);
 	}
 });
