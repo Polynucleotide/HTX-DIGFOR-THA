@@ -60,12 +60,12 @@ class ImageProcessor {
 				processedImage.processingTime = Number(end - start) / 1_000_000; // Convert nanoseconds to milliseconds
 				processedImage.sizeBytes = file.size;
 				processedImage.status = "success";
-				this.#logger.log(LogLevel.INFO, `Successully processed image (${imageId})`);
+				this.#logger.log(LogLevel.INFO, `Successully processed image "${imageId}" metadata`);
 			})
 			.catch(_ => {
 				processedImage.errorMsg = "invalid file format";
 				processedImage.status = "failed";
-				this.#logger.log(LogLevel.WARN, `Failed to process image (${imageId})`);
+				this.#logger.log(LogLevel.WARN, `Failed to process image "${imageId}" metadata`);
 			})
 			.finally(() => {
 				database.updateImageData(processedImage);

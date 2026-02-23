@@ -10,7 +10,7 @@ class Logger {
 	#writeStream;
 
 	constructor(rootDir) {
-		this.#logFilepath = `${rootDir}/app.log`;
+		this.#logFilepath = `${rootDir}/logs/app.log`;
 		this.#writeStream = fs.createWriteStream(this.#logFilepath, { flags: "a" });
 	}
 

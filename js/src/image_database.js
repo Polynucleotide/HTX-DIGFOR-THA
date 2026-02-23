@@ -1,4 +1,5 @@
 const Database = require('better-sqlite3');
+const { LogLevel } = require("./logger");
 
 class ImageDatabase {
 	#db;
@@ -85,7 +86,7 @@ class ImageDatabase {
 	}
 
 	updateImageData(processedImageData) {
-		const info = this.#queries.update_stmt.run(
+		this.#queries.update_stmt.run(
 			processedImageData.imageId,
 			processedImageData.status,
 			processedImageData.processingTime,
@@ -97,13 +98,6 @@ class ImageDatabase {
 			processedImageData.errorMsg,
 			processedImageData.rowId
 		);
-
-		if (info.changes > 0) {
-			this.#logger.log(LogLevel.INFO, `Successfully processed image "${processedImageData.imageId}" metadata`);
-		}
-		else {
-			this.#logger.log(LogLevel.WARN, `Failed to process image "${processedImageData.imageId}" metadata`);
-		}
 	}
 
 	setImageCaption(caption, imageId) {
