@@ -49,7 +49,35 @@ curl -X POST http://localhost:8000/api/images -F "image=@C:/path/to/image.png"
 If you're lazy, I've provided a script, `script.sh`, that sends a request for every file in the `images/` folder.  
 If you want, you can add some of your own images.
 
-## 5. Pipeline Explanation
+## 5. API Usage
+```
+POST /api/images
+- Accept image uploads
+- Generate thumbnails (small, medium)
+- Extract basic metadata (dimensions, format, size, date time of the file)
+- AI captions the image (https://huggingface.co/Salesforce/blip-image-captioning-large)
+- Supported formats: JPG, PNG
+
+GET /api/images
+- List all processed or processing images
+- Include processing status
+
+GET /api/images/{id}
+- Get specific image details
+- Include URLs for thumbnails
+- Show metadata and analysis
+
+GET /api/images/{id}/thumbnails/{small,medium}
+- Return either the small or the medium thumbnail
+- Includes the generated caption, null if still processing
+
+GET /api/stats
+- Processing statistics
+- Success/failure rates
+- Average processing time
+```
+
+## 6. Pipeline Explanation
 - Validation: Filters for supported JPG and PNG formats.
 - Asynchronous: Returns an image ID immediately while processing occurs in the background.
 - Metadata Extraction: Gathers dimensions, format, and file size.
@@ -57,11 +85,11 @@ If you want, you can add some of your own images.
 - AI Analysis: Uses the Salesforce/blip-image-captioning-large model to generate descriptive captions.
 - Logging: Utilizes proper system logging to track successes and failures.
 
-## 6. Generated Folders
+## 7. Generated Folders
 - js/logs (Shared, you can view logs in your local disk)
 - js/database (Stored in container)
 - js/thumbnails (Stored in container)
 
-## 7. Architecture
+## 8. Architecture
 - NodeJS server (Image processing for metadata, logging, persistence using sqlite)
 - Python server (Reads image buffer sent from the NodeJS server, and generates a caption using AI)
