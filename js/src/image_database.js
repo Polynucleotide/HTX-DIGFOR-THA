@@ -74,7 +74,7 @@ class ImageDatabase {
 			"SELECT " +
 				"COALESCE(SUM(IIF(status != 'processing', 1, 0)), 0) AS total," +
 				"COALESCE(SUM(IIF(status == 'failed', 1, 0)), 0) AS failed," +
-				"COALESCE(SUM(processing_time), 0) / 1000 AS total_processing_time_seconds " +
+				"COALESCE(SUM(processing_time), 0) / 1000.0 AS total_processing_time_seconds " +
 			"FROM processed_images;"
 		);
 	}
